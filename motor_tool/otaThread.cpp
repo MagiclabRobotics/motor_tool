@@ -2147,12 +2147,12 @@ void otaThread::rxdPack_PARA_UPDATE()
                 for (i = 0; i < CHANNAL_SEL_NUM; i++)
                     mData[i].clear();
 
-                scopeShowNum = (quint32)(chEchoFreHz/ WAVE_SHOW_FRE)*2;  //減緩示波器ui刷新速率；
+                scopeShowNum = (quint32)(chEchoFreHz/ WAVE_SHOW_FRE);  //減緩示波器ui刷新速率；
 
                 if (scopeShowNum == 0)
                     scopeShowNum = 1;
                 scopeShowCount = 0;
-                scopeWindowNum = (quint32)(WAVE_TIME_WINDOW * chEchoFreHz*10);
+                scopeWindowNum = (quint32)(WAVE_TIME_WINDOW * chEchoFreHz);
                 scopeWindowCount = 0;
                 scopeWindowRemoveFlag = false;
 
@@ -2239,16 +2239,16 @@ void otaThread::scope_dataProcess()
         if (tick > chTickBak) {
             chTimeStamp += (tick - chTickBak) / 1000000.0f;
         } else {
-            chTimeStamp += (65536 + tick - chTickBak) / 10000000000.0f;
+            chTimeStamp += (65536 + tick - chTickBak) / 1000000.0f;
         }
         chTickBak = tick;
     } else {
         if (tick > chTickBak) {
             // 修正：乘以2以解决时间慢1倍的问题
-            chTimeStamp += 2 * (tick - chTickBak) * chTickUs / 10000000000.0f;
+            chTimeStamp += 2 * (tick - chTickBak) * chTickUs / 1000000.0f;
         } else {
             // 修正：乘以2以解决时间慢1倍的问题
-            chTimeStamp += 2 * (65536 + tick - chTickBak) * chTickUs / 10000000000.0f;
+            chTimeStamp += 2 * (65536 + tick - chTickBak) * chTickUs / 100000.0f;
         }
         chTickBak = tick;
     }
