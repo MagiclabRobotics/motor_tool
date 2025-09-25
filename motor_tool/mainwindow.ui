@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_serial">
      <attribute name="title">
@@ -1692,8 +1692,8 @@ p, li { white-space: pre-wrap; }
      <widget class="QPushButton" name="pushButtonEchoStart">
       <property name="geometry">
        <rect>
-        <x>830</x>
-        <y>330</y>
+        <x>840</x>
+        <y>360</y>
         <width>51</width>
         <height>23</height>
        </rect>
@@ -1729,8 +1729,8 @@ p, li { white-space: pre-wrap; }
      <widget class="QPushButton" name="pushButtonEchoSet">
       <property name="geometry">
        <rect>
-        <x>770</x>
-        <y>330</y>
+        <x>760</x>
+        <y>360</y>
         <width>51</width>
         <height>23</height>
        </rect>
@@ -1772,19 +1772,6 @@ p, li { white-space: pre-wrap; }
        <string>数据保存</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton">
-      <property name="geometry">
-       <rect>
-        <x>780</x>
-        <y>400</y>
-        <width>91</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>视图自适应</string>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="checkBox_show_value">
       <property name="geometry">
        <rect>
@@ -1799,22 +1786,6 @@ p, li { white-space: pre-wrap; }
       </property>
       <property name="checked">
        <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_add_tracer">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>780</x>
-        <y>370</y>
-        <width>91</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>添加游标</string>
       </property>
      </widget>
     </widget>

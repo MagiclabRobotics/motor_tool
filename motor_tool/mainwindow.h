@@ -132,7 +132,7 @@ private slots:
 
     void on_comboBoxSelFrameType_currentIndexChanged(int index);
 
-    void on_pushButton_clicked();
+    //void on_pushButton_clicked();
 
     void on_combox_motor_ID_currentIndexChanged(int index);
 
