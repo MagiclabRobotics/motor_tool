@@ -2244,11 +2244,10 @@ void otaThread::scope_dataProcess()
         chTickBak = tick;
     } else {
         if (tick > chTickBak) {
-            // 修正：乘以2以解决时间慢1倍的问题
-            chTimeStamp += 2 * (tick - chTickBak) * chTickUs / 1000000.0f;
+
+            chTimeStamp += (tick - chTickBak) * chTickUs / 1000000.0f;
         } else {
-            // 修正：乘以2以解决时间慢1倍的问题
-            chTimeStamp += 2 * (65536 + tick - chTickBak) * chTickUs / 100000.0f;
+            chTimeStamp += (65536 + tick - chTickBak) * chTickUs / 100000.0f;
         }
         chTickBak = tick;
     }

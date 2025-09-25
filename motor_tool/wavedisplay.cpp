@@ -4,6 +4,11 @@ waveDisplay::waveDisplay(QWidget *parent) : QCustomPlot(parent)
 {
     QPen pen;
     pen.setWidth(1); // 曲线的粗细
+    //加速绘制波形
+    setOpenGl(true);
+    setNotAntialiasedElements(QCP::aeAll);
+       setNoAntialiasingOnDrag(true);
+       setPlottingHints(QCP::phFastPolylines);
     for (quint8 i = 0; i < CHANNAL_SEL_NUM; i++)
     {
         addGraph();

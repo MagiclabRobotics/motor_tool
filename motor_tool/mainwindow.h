@@ -163,9 +163,15 @@ private slots:
     void on_lineEditSetSelfMode_textChanged(const QString &arg1);
     void on_lineEditSetSelfMode_editingFinished();
     void on_pushButtonTxtParaInsert_clicked();
+    void onChannelCheckBoxStateChanged();
+    void updateWaveDisplay();
 
 private:
     Ui::MainWindow *ui;
+    QTimer m_plotTimer;
+    QTimer m_updateTimer;
+    bool m_needsReplot;
+
     void changeObjectSize(const QObject &o, double objectRate);
     void noCanDevConfig();
     void detectedCanDevConfig();

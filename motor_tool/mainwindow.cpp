@@ -101,9 +101,43 @@ MainWindow::MainWindow(QWidget *parent)
 
     //    ui->tableWidgetPara->setProperty("RowHeight", 60);
     ui->tableWidgetPara->verticalHeader()->setDefaultSectionSize(25);
+
+    // 连接所有复选框的状态变化信号到同一个槽函数
+    connect(ui->checkBoxCh1, SIGNAL(stateChanged(int)), this, SLOT(onChannelCheckBoxStateChanged()));
+    connect(ui->checkBoxCh2, SIGNAL(stateChanged(int)), this, SLOT(onChannelCheckBoxStateChanged()));
+    connect(ui->checkBoxCh3, SIGNAL(stateChanged(int)), this, SLOT(onChannelCheckBoxStateChanged()));
+    connect(ui->checkBoxCh4, SIGNAL(stateChanged(int)), this, SLOT(onChannelCheckBoxStateChanged()));
+    connect(ui->checkBoxCh5, SIGNAL(stateChanged(int)), this, SLOT(onChannelCheckBoxStateChanged()));
+    connect(ui->checkBoxCh6, SIGNAL(stateChanged(int)), this, SLOT(onChannelCheckBoxStateChanged()));
+    connect(ui->checkBoxCh7, SIGNAL(stateChanged(int)), this, SLOT(onChannelCheckBoxStateChanged()));
+    connect(ui->checkBoxCh8, SIGNAL(stateChanged(int)), this, SLOT(onChannelCheckBoxStateChanged()));
+
+    // 确保所有复选框初始状态为未勾选
+    ui->checkBoxCh1->setChecked(false);
+    ui->checkBoxCh2->setChecked(false);
+    ui->checkBoxCh3->setChecked(false);
+    ui->checkBoxCh4->setChecked(false);
+    ui->checkBoxCh5->setChecked(false);
+    ui->checkBoxCh6->setChecked(false);
+    ui->checkBoxCh7->setChecked(false);
+    ui->checkBoxCh8->setChecked(false);
+
     paraTableClear(ui->tableWidgetPara);
 
     connect(myCom, SIGNAL(readyRead()), this, SLOT(readFromCom()));
+    m_plotTimer.setInterval(100); // 100ms
+    connect(&m_plotTimer, &QTimer::timeout, this, [this]() {
+        if (m_needsReplot) {
+            ui->waveShow->replot();
+            m_needsReplot = false;
+        }
+    });
+    m_plotTimer.start();
+    m_plotTimer.start();
+
+        // 初始化更新定时器
+        m_updateTimer.setSingleShot(true);
+        connect(&m_updateTimer, &QTimer::timeout, this, &MainWindow::updateWaveDisplay);
 
     // signal from the child thread
     /* fzh20221028,sendState/StateUpdate、scopeToShow/waveFreShow是库函数/非CAN通信函数
@@ -159,6 +193,7 @@ void MainWindow::noCanDevConfig()
     writeAllModyfiedFlag = false;
 }
 
+
 // 检测到CAN设备的配置
 void MainWindow::detectedCanDevConfig()
 {
@@ -177,7 +212,82 @@ void MainWindow::detectedCanDevConfig()
     ui->pushButtonInOtaMode->setEnabled(true);
     ui->pushButtonRefreshTable->setEnabled(true);
 }
+// 复选框状态变化的函数
+void MainWindow::onChannelCheckBoxStateChanged()
+{
+    // 延迟处理，避免频繁更新
+    if (!m_updateTimer.isActive()) {
+        m_updateTimer.start(50); // 50ms后更新
+    }
+}
+// 更新波形显示的函数
+void MainWindow::updateWaveDisplay()
+{
+    // 收集所有选中的通道
+    QList<int> selectedChannels;
+    if (ui->checkBoxCh1->isChecked()) selectedChannels.append(0);
+    if (ui->checkBoxCh2->isChecked()) selectedChannels.append(1);
+    if (ui->checkBoxCh3->isChecked()) selectedChannels.append(2);
+    if (ui->checkBoxCh4->isChecked()) selectedChannels.append(3);
+    if (ui->checkBoxCh5->isChecked()) selectedChannels.append(4);
+    if (ui->checkBoxCh6->isChecked()) selectedChannels.append(5);
+    if (ui->checkBoxCh7->isChecked()) selectedChannels.append(6);
+    if (ui->checkBoxCh8->isChecked()) selectedChannels.append(7);
 
+    // 如果没有选中任何通道，则显示所有通道
+    bool showAll = selectedChannels.isEmpty();
+
+    // 设置波形的可见性
+    for (int i = 0; i < 8; i++) {
+        bool visible = showAll || selectedChannels.contains(i);
+        ui->waveShow->graph(i)->setVisible(visible);
+    }
+
+    // 调整Y轴范围
+    if (showAll) {
+        // 如果没有选中的通道，自动调整Y轴范围以适应所有可见的波形
+        ui->waveShow->yAxis->rescale();
+    } else {
+        // 如果有选中的通道，计算选中通道的数据范围
+        QCPRange range;
+        bool firstRange = true;
+
+        for (int channel : selectedChannels) {
+            bool foundRange = false;
+            QCPGraph *graph = ui->waveShow->graph(channel);
+            QCPRange channelRange = graph->getValueRange(foundRange);
+
+            if (foundRange) {
+                if (firstRange) {
+                    range = channelRange;
+                    firstRange = false;
+                } else {
+                    range.expand(channelRange);
+                }
+            }
+        }
+
+        if (!firstRange) {
+            // 如果范围太小（例如接近0），设置一个合理的默认范围
+            if (fabs(range.upper - range.lower) < 1e-6) {
+                range.lower = -1.0;
+                range.upper = 1.0;
+            } else {
+                // 添加一些边距
+                double margin = (range.upper - range.lower) * 0.1;
+                range.lower -= margin;
+                range.upper += margin;
+            }
+            ui->waveShow->yAxis->setRange(range);
+        } else {
+            // 如果没有找到范围，设置一个默认范围
+            ui->waveShow->yAxis->setRange(-1.0, 1.0);
+        }
+    }
+
+    ui->waveShow->replot();
+    m_needsReplot = true;
+}
 // 获取参数类型的字符串
 QString MainWindow::getParaTypeStr(enum paraType type)
 {
@@ -1157,6 +1267,7 @@ void MainWindow::writeToCom(QByteArray Pack, qint16 len)
 void MainWindow::waveFreShow(QVector<QCPGraphData> *paraTab)
 {
     ui->waveShow->setData(paraTab);
+    updateWaveDisplay();
 }
 
 void MainWindow::on_pushButtonOpenCom_clicked()
@@ -2366,6 +2477,7 @@ void MainWindow::on_pushButtonEchoSet_clicked()
     else
     {
         uart2can.setCmd(STEP_SCOPE_SET_FRE);
+         updateWaveDisplay();
     }
 }
 
@@ -2403,6 +2515,8 @@ void MainWindow::on_pushButtonEchoStart_clicked()
             uart2can.setCmd(STEP_MOTOR_CTRL_SINGLE);
         }
         uart2can.setCmd(STEP_SCOPE_START); //
+        updateWaveDisplay();
+
     }
     else
     {
@@ -2422,6 +2536,7 @@ void MainWindow::on_pushButtonEchoStart_clicked()
         connect(ui->waveShow, SIGNAL(mouseMove(QMouseEvent *)), this, SLOT(myMoveEvent(QMouseEvent *)));
 
         uart2can.setCmd(STEP_SCOPE_STOP);
+
     }
 }
 
