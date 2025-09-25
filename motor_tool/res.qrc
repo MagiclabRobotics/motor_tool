@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/ico">
+        <file>resources/can_ota.png</file>
+        <file>resources/can_usb.png</file>
+        <file>resources/can_usb_1.png</file>
+        <file>resources/tool.png</file>
+    </qresource>
+</RCC>
