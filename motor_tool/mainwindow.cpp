@@ -148,6 +148,7 @@ void MainWindow::noCanDevConfig()
     ui->pushButtonReadPara->setEnabled(false);
     ui->pushButtonWritePara->setEnabled(false);
     ui->pushButtonRecoverFac->setEnabled(false);
+    ui->pushButtonTxtParaInsert->setEnabled(false);
 
     if (isSaveLogOpen)
         saveLogFile.write(ui->textEditCfgInfo->toPlainText().toUtf8());
@@ -2195,6 +2196,7 @@ void MainWindow::on_pushButtonRefreshTable_clicked()
     ui->pushButtonRefreshTable->setEnabled(false);
 
     ui->labelParaInfo->setStyleSheet("color:green;");
+    ui->pushButtonTxtParaInsert->setEnabled(true);
     ui->labelParaInfo->setText("启动更新参数表！");
 
     uart2can.mcuBuf.usePos = (quint8)pos;
@@ -2972,4 +2974,229 @@ void MainWindow::on_lineEditSetSelfMode_editingFinished()
         uart2can.SelfMode = 0;
         ui->lineEditSetSelfMode->setText("0");
     }
+}
+void MainWindow::on_pushButtonTxtParaInsert_clicked()
+{
+    importParametersFromTxt(ui->tableWidgetPara);
+}
+
+void MainWindow::importParametersFromTxt(QTableWidget *widget)
+{
+    // 清除之前的错误信息，并重置样式
+    ui->labelParaInfo->setText("");
+    ui->labelParaInfo->setStyleSheet("");
+
+    // 手动选择文件地址
+    QString filePath = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Text Files (*.txt)"));
+    if (filePath.isEmpty()) {
+        ui->labelParaInfo->setText("未选择文件");
+        ui->labelParaInfo->setStyleSheet("color: red;");
+        return;
+    }
+
+    // 读取文件内容
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        ui->labelParaInfo->setText(QString("无法打开文件：%1").arg(filePath));
+        ui->labelParaInfo->setStyleSheet("color: red;");
+        return;
+    }
+
+    QTextStream in(&file);
+    QStringList lines;
+    quint16 ParaSector = 0;
+    quint16 SectorParaNum = 0;
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();  // 去除空格
+        if(line.startsWith('*')){
+            if(line == ("*Tq_IqP")){
+                if(ParaSector != 0){
+                    ui->labelParaInfo->setText(QString("文件中的扇区名或顺序不对"));
+                    ui->labelParaInfo->setStyleSheet("color: red;");
+                    return;
+                }
+                ParaSector++;
+                if(SectorParaNum > 0){
+                    ui->labelParaInfo->setText(QString("文件中的数据未定义"));
+                    ui->labelParaInfo->setStyleSheet("color: red;");
+                    return;
+                }
+                continue;
+            }
+            else if(line == ("*Tq_TorP")){
+                if(ParaSector != 1){
+                    ui->labelParaInfo->setText(QString("文件中的扇区名或顺序不对"));
+                    ui->labelParaInfo->setStyleSheet("color: red;");
+                    return;
+                }
+                ParaSector++;
+                if(SectorParaNum != 32){
+                    ui->labelParaInfo->setText(QString("文件中的Tq_IqP扇区数据的数量不对"));
+                    ui->labelParaInfo->setStyleSheet("color: red;");
+                    return;
+                }
+                SectorParaNum = 0;
+                continue;
+            }
+            else if(line == ("*Tq_IqN")){
+                if(ParaSector != 2){
+                    ui->labelParaInfo->setText(QString("文件中的扇区名或顺序不对"));
+                    ui->labelParaInfo->setStyleSheet("color: red;");
+                    return;
+                }
+                ParaSector++;
+                if(SectorParaNum != 32){
+                    ui->labelParaInfo->setText(QString("文件中的Tq_TorP扇区数据的数量不对"));
+                    ui->labelParaInfo->setStyleSheet("color: red;");
+                    return;
+                }
+                SectorParaNum = 0;
+                continue;
+            }
+            else if(line == ("*Tq_caliN")){
+                if(ParaSector != 3){
+                    ui->labelParaInfo->setText(QString("文件中的扇区名或顺序不对"));
+                    ui->labelParaInfo->setStyleSheet("color: red;");
+                    return;
+                }
+                ParaSector++;
+                if(SectorParaNum != 32){
+                    ui->labelParaInfo->setText(QString("文件中的Tq_IqN扇区数据的数量不对"));
+                    ui->labelParaInfo->setStyleSheet("color: red;");
+                    return;
+                }
+                SectorParaNum = 0;
+                continue;
+            }
+        }
+
+        if (!line.isEmpty()) {
+            lines.append(line);
+            SectorParaNum++;
+        }
+    }
+    file.close();
+    if(ParaSector < 4){
+        ui->labelParaInfo->setText(QString("文件中的扇区名或数量不对"));
+        ui->labelParaInfo->setStyleSheet("color: red;");
+        return;
+    }
+    if(SectorParaNum != 32){
+        ui->labelParaInfo->setText(QString("文件中的Tq_caliN扇区数据的数量不对"));
+        ui->labelParaInfo->setStyleSheet("color: red;");
+        return;
+    }
+
+    // 校验数据行数是否匹配
+    const int expectedRowCount = 128;  // 直接设定为128行
+    if (lines.size() != expectedRowCount) {
+        ui->labelParaInfo->setText(QString("文件中的数据行数与预期不符，应为 %1 行").arg(expectedRowCount));
+        ui->labelParaInfo->setStyleSheet("color: red;");
+        return;
+    }
+
+    // 检查每行是否有多个数据
+    for (const QString &line : lines) {
+        QStringList parts = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+        if (parts.size() > 1) {
+            ui->labelParaInfo->setText(QString("错误：文件中的某行包含多个数据：%1").arg(line));
+            ui->labelParaInfo->setStyleSheet("color: red;");
+            return;
+        }
+    }
+
+    // 定义需要导入的参数ID范围
+    QList<quint16> paramIDs = {
+        0x200f, 0x2010, 0x2011, 0x2012, 0x2013, 0x2014, 0x2015, 0x2016,
+        0x2017, 0x2018, 0x2019, 0x201A, 0x201B, 0X201C, 0X201D, 0X201E,
+        0x201f, 0x2020, 0x2021, 0x2022, 0x2023, 0x2024, 0x2025, 0x2026,
+        0x2027, 0x2028, 0x2029, 0x202A, 0x202B, 0X202C, 0X202D, 0X202E,
+        0x202f, 0x2030, 0x2031, 0x2032, 0x2033, 0x2034, 0x2035, 0x2036,
+        0x2037, 0x2038, 0x2039, 0x203A, 0x203B, 0X203C, 0X203D, 0X203E,
+        0x203f, 0x2040, 0x2041, 0x2042, 0x2043, 0x2044, 0x2045, 0x2046,
+        0x2047, 0x2048, 0x2049, 0x204A, 0x204B, 0X204C, 0X204D, 0X204E
+    };
+    quint16 txt_id_index = TXT_ID_MIN;
+    quint16 txt_max_index = TXT_ID_MAX;
+    bool paraBool;
+    for (int row = 0; row < widget->rowCount(); ++row) {
+        QTableWidgetItem *paraName = widget->item(row,1);
+        if( paraName->text() == "Tq_IqP1"){
+            txt_id_index = widget->item(row,0)->text().toUInt(&paraBool,16);
+            if(!paraBool){
+                //解析失败
+            }
+            txt_max_index = widget->item(row,0)->text().toUInt(&paraBool,16) + 128;
+            if(!paraBool){
+                //解析失败
+            }
+            break;
+        }
+    }
+
+
+
+    // 导入数据到表格
+    int dataIndex = 0;
+    for (int row = 0; row < widget->rowCount(); ++row) {
+        QTableWidgetItem *item = widget->item(row, 0);  // 获取第一列（参数ID）
+        if (!item) continue;
+
+        bool ok;
+        quint16 paramID = item->text().toUInt(&ok, 16);  // 将字符串转换为16进制整数
+        //if (!ok || !paramIDs.contains(paramID)) continue;
+        if (!ok || (txt_id_index != paramID)) continue;
+        if(txt_id_index++ > txt_max_index ) break;
+        // 找到对应的数据行
+        if (dataIndex < lines.size()) {
+            QString dataValueStr = lines[dataIndex].trimmed();
+            bool isNumber;
+            double dataValue = dataValueStr.toDouble(&isNumber);
+            if (!isNumber) {
+                ui->labelParaInfo->setText(QString("错误：无效的数值格式：%1").arg(dataValueStr));
+                ui->labelParaInfo->setStyleSheet("color: red;");
+                return;
+            }
+
+            // 获取该行的最大值和最小值
+            QTableWidgetItem *maxItem = widget->item(row, 4);  // 第5列是最大值
+            QTableWidgetItem *minItem = widget->item(row, 5);  // 第6列是最小值
+            if (!maxItem || !minItem) {
+                ui->labelParaInfo->setText("错误：缺少最大值或最小值");
+                ui->labelParaInfo->setStyleSheet("color: red;");
+                return;
+            }
+
+            bool maxOk, minOk;
+            double maxValue = maxItem->text().toDouble(&maxOk);
+            double minValue = minItem->text().toDouble(&minOk);
+            if (!maxOk || !minOk) {
+                ui->labelParaInfo->setText("错误：最大值或最小值解析失败");
+                ui->labelParaInfo->setStyleSheet("color: red;");
+                return;
+            }
+
+            // 数据范围检查
+            if (dataValue < minValue || dataValue > maxValue) {
+                ui->labelParaInfo->setText(QString("错误：数据超出范围，行 %1 数据：%2 应在范围 [%3, %4]")
+                                               .arg(row).arg(dataValueStr).arg(minValue).arg(maxValue));
+                ui->labelParaInfo->setStyleSheet("color: red;");
+                return;
+            }
+
+            QTableWidgetItem *editItem = new QTableWidgetItem(dataValueStr);
+
+            // 设置单元格可编辑
+            editItem->setFlags(editItem->flags() | Qt::ItemIsEditable | Qt::ItemIsSelectable);
+            editItem->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+            editItem->setBackground(QColor("#FFFFFF"));  // 白色背景
+
+            // 设置到特定编辑列
+            widget->setItem(row, PARA_TAB_EDIT_COLUMN, editItem);
+            dataIndex++;
+        }
+    }
+
+    // 成功提示，使用默认样式
+    ui->labelParaInfo->setText("数据导入完成");
 }

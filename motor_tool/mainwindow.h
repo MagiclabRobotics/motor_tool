@@ -26,7 +26,8 @@ QT_END_NAMESPACE
 
 #define PARA_TAB_COLUMN_NUM (7)
 #define PARA_TAB_EDIT_COLUMN (6)
-
+#define TXT_ID_MIN 0x200f
+#define TXT_ID_MAX 0x208e
 
 class MainWindow : public QMainWindow
 {
@@ -161,6 +162,7 @@ private slots:
     void on_lineEditSetKi_editingFinished();
     void on_lineEditSetSelfMode_textChanged(const QString &arg1);
     void on_lineEditSetSelfMode_editingFinished();
+    void on_pushButtonTxtParaInsert_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -187,6 +189,7 @@ private:
     void selConfigInitChannal();
     void selConfigAllChannal();
     void selConfigRefrenPara();
+    void importParametersFromTxt(QTableWidget *widget);
     QString color2Str(const QColor &color);
 
     void paraTableRefreshModifyFlags(QTableWidget *widget, quint16 code, bool setModifiedFlag);
