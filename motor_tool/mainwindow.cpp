@@ -2662,11 +2662,11 @@ void MainWindow::myMoveEvent(QMouseEvent* e)
 
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    ui->waveShow->rescaleAxes();
-    ui->waveShow->replot();
-}
+//void MainWindow::on_pushButton_clicked()
+//{
+//    ui->waveShow->rescaleAxes();
+//    ui->waveShow->replot();
+//}
 
 void MainWindow::on_combox_motor_ID_currentIndexChanged(int index)
 {
