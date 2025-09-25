@@ -5,3 +5,5 @@ Qt 5.12.12
 ## 安装配置
 安装配置步骤如图所示
 ![img_v3_02qe_387f900d-45ee-4df2-9634-1a676ef607dg](https://github.com/user-attachments/assets/205a1f4a-0f63-48f0-a862-7bcbebcd4944)
+## 控制电机类型
+串口电机
