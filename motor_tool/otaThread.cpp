@@ -2233,26 +2233,33 @@ void otaThread::rxdPack_PARA_UPDATE()
 void otaThread::scope_dataProcess()
 {
     quint16 tick;
-    memcpy(&tick, &chRxdByte[0], 2);
+    memcpy(&tick, &chRxdByte[0], 2); // 这个时间表示的是，这一次数据的时间，应该是用来做位横轴的刻度的
+    if (Burst_mode)
+    {
 
-    if (Burst_mode) {
-        if (tick > chTickBak) {
+        if (tick > chTickBak){
+
+
             chTimeStamp += (tick - chTickBak) / 1000000.0f;
-        } else {
-            chTimeStamp += (65536 + tick - chTickBak) / 1000000.0f;
-        }
-        chTickBak = tick;
-    } else {
-        if (tick > chTickBak) {
+            // 转换成以秒为单位
 
-            chTimeStamp += (tick - chTickBak) * chTickUs / 1000000.0f;
-        } else {
-            chTimeStamp += (65536 + tick - chTickBak) * chTickUs / 100000.0f;
         }
-        chTickBak = tick;
+        else{
+            chTimeStamp += ((65536 + tick - chTickBak) / 1000000.0f);
+        }
+        chTickBak =tick;
+
     }
+    else {
+        // 非突发模式：使用chTickUs作为时间单位（假设为微秒）
+        if (tick > chTickBak) {
+            chTimeStamp +=(( (tick - chTickBak) * chTickUs) / 1000000.0f);
+        } else {
+            chTimeStamp += ((65536 + tick - chTickBak) * chTickUs / 1000000.0f);
+        }
+        chTickBak = tick;
 
-
+    }
     quint16 pos = 2;
 
     double val;
