@@ -145,8 +145,8 @@ MainWindow::MainWindow(QWidget *parent)
      */
     connect(&this->uart2can, SIGNAL(sendState()), this, SLOT(StateUpdate()));
     connect(this, SIGNAL(sendRecvData(QByteArray)), &this->uart2can, SLOT(getSerialData(QByteArray)));
-    connect(&this->uart2can, SIGNAL(WriteToSerial(QByteArray, qint16)), this, SLOT(writeToCom(QByteArray, qint16))); /* emit */
-    connect(&this->uart2can, SIGNAL(scopeToShow(QVector<QCPGraphData> *)), this, SLOT(waveFreShow(QVector<QCPGraphData> *)));
+    connect(&this->uart2can, SIGNAL(WriteToSerial(QByteArray,qint16)), this, SLOT(writeToCom(QByteArray,qint16))); /* emit */
+    connect(&this->uart2can, SIGNAL(scopeToShow(QVector<QCPGraphData>*)), this, SLOT(waveFreShow(QVector<QCPGraphData>*)));
 
     // 计算dpi
     QList<QScreen *> screens = QApplication::screens();
@@ -1589,7 +1589,8 @@ void MainWindow::StateUpdate()
 
         break;
     case OTA_STA_SWEEP_RESULT:
-       ui->textEditCfgInfo->append("扫频模式-频率索引："+QString::number(uart2can.frequency)+" 幅值："+QString::number(uart2can.amplitude)+"db"+" 相位："+QString::number(uart2can.phase)+"度");
+            ui->textEditCfgInfo->setTabStopDistance(30);
+            ui->textEditCfgInfo->append("扫频模式-频率索引："+QString::number(uart2can.frequency)+"\t"+"幅值："+QString::number(uart2can.amplitude, 'f', 5)+" dB\t"+" 相位："+QString::number(uart2can.phase,'f', 3)+"°");
        break;
     case OTA_STA_ENCODER_CALI_RESULT:
         ui->textEditCfgInfo->append("编码器标定结果-设备：" + QString::number(uart2can.canIdGet, 10) + " 编号：" + QString::number(uart2can.caliI, 10) + " 数组序号：" + QString::number(uart2can.caliInd, 10) + " 校正值：" + QString::number(uart2can.caliLut, 10));

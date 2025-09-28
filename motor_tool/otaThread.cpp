@@ -1511,16 +1511,16 @@ void otaThread::rxdPack_ANNOUNCE_DEVID()
 
 void otaThread::rxdPack_MOTOR_FEEDBACK()
 {
-    if (canFrameType == FRAME_EXD)
-    {
-        if (rxFrame.len != 6)
-            return;
-    }
-    else
-    {
-        if (rxFrame.len != 8)
-            return;
-    }
+//    if (canFrameType == FRAME_EXD)
+//    {
+//        if (rxFrame.len != 6)
+//            return;
+//    }
+//    else
+//    {
+//        if (rxFrame.len != 8)
+//            return;
+//    }
 
     canIdGet = rxFrame.exId.data & 0X00FF;
 
@@ -1555,7 +1555,8 @@ void otaThread::rxdPack_MOTOR_FEEDBACK()
         default:
             break;
         }
-        mtStatus.mode = (enum motorMode)((rxFrame.exId.data & 0XF800) >> 11);
+//        mtStatus.mode = (enum motorMode)((rxFrame.exId.data & 0XF800) >> 11);
+        mtStatus.mode = (enum motorMode)((rxFrame.exId.data & 0XC000) >> 14);
     }
     else{
         mtStatus.underVoltFault = (rxFrame.exId.data & 0X0100) ? true : false;
