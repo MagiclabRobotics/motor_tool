@@ -1,0 +1,2 @@
+RZ2L电机.exe filter=lfs diff=lfs merge=lfs -text
+RZ2L电机调试助手.exe filter=lfs diff=lfs merge=lfs -text
