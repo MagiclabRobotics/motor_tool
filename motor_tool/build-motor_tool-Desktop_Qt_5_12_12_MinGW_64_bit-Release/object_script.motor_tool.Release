@@ -1,0 +1,10 @@
+release/main.o
+release/mainwindow.o
+release/otaThread.o
+release/qcustomplot.o
+release/wavedisplay.o
+release/qrc_res.o
+release/moc_mainwindow.o
+release/moc_otaThread.o
+release/moc_qcustomplot.o
+release/moc_wavedisplay.o
