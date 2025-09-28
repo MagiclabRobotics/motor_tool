@@ -2240,7 +2240,7 @@ void otaThread::scope_dataProcess()
         if (tick > chTickBak){
 
 
-            chTimeStamp += (tick - chTickBak) / 1000000.0f;
+            chTimeStamp += (tick - chTickBak) / 10000.0f;
             // 转换成以秒为单位
 
         }
@@ -2253,9 +2253,9 @@ void otaThread::scope_dataProcess()
     else {
         // 非突发模式：使用chTickUs作为时间单位（假设为微秒）
         if (tick > chTickBak) {
-            chTimeStamp +=(( (tick - chTickBak) * chTickUs) / 1000000.0f);
+            chTimeStamp +=( (tick - chTickBak) * chTickUs) / 1000000.0f;
         } else {
-            chTimeStamp += ((65536 + tick - chTickBak) * chTickUs / 1000000.0f);
+            chTimeStamp += (65536 + tick - chTickBak) * chTickUs / 1000000.0f;
         }
         chTickBak = tick;
 
