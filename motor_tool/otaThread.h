@@ -136,14 +136,16 @@ enum canComMode
     CANCOM_HALLCALI_RST,   // 低速HALL标定结果
     CANCOM_PARA_STR_INFO,  // 参数-字符串信息
     CANCOM_MOTOR_BRAKE,    // MOTOR-进入刹车模式
+     CANCOM_FAULT_WARN,     // 故障和警告信息
     CANCOM_MOTOR_OPENLOOP, //电机开环
+    CANCOM_MOTOR_SWEEP,   //电机扫频
     CANCOM_MOTOR_CASCADE,  //电机模式4
     CANCOM_MOTOR_TOQCALI, //248 扭矩步进
-    CANCOM_MOTOR_SWEEP,   //电机扫频
-    CANCOM_FAULT_WARN,     // 故障和警告信息
+     CANCOM_MOTOR_ENCODE, //高编自校准
+     CANCOM_CLEAR_ERR,      //清除故障码
+    CANCOM_VERSION_READ,    //读取软件版本
+     CANCOM_MODE_TOTAL, // 未开发功能
     CANCOM_SCOPE_SET_MODE, // 示波器设置模式
-
-    CANCOM_MODE_TOTAL, // 未开发功能
 };
 enum stateType{
     REST_MODE = 0,          //复位模式

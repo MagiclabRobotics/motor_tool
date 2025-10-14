@@ -1405,19 +1405,19 @@ void otaThread::run()
         case STEP_WRITE_PARA_STR:
 
             msleep(50);
-            UseTimeMs += 100;
+            UseTimeMs += 50;
 
             if (hasAcked)
             {
                 hasAcked = false;
                 UseTimeMs = 0;
             }
-            else if (UseTimeMs > 1000)
-            {
-                runStep = STEP_STOP;
-                otaStatus = OTA_STA_WRITE_PARA_OVER_TIME;
-                emit sendState();
-            }
+//            else if (UseTimeMs > 10000)
+//            {
+//                runStep = STEP_STOP;
+//                otaStatus = OTA_STA_WRITE_PARA_OVER_TIME;
+//                emit sendState();
+//            }
             break;
 
         case STEP_MOTOR_CTRL_CONTINUOUS:
